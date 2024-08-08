@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mr-black # choose this name freely
+  labels:
+    key: black-app # this can be literally any key-value
+spec:
+  replicas: 2 # number of pods containing the same image
+  selector:
+    matchLabels:
+      key: black-app
+  template:
+    metadata:
+      labels:
+        key: black-app
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: black-app
+        resources:
+          limits:
+            memory: 100Mi
+        image: docker.io/library/nginx:1.16
+        ports:
+        - containerPort: 5645

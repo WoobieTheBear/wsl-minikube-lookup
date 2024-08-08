@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: black-db # call this whatever makes sense to you
+  namespace: black-space
+  labels:
+    app: db-label # this is how the context is referred to
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-label # reference to context
+  template:
+    metadata:
+      labels:
+        app: db-label # reference to context
+    spec:
+      automountServiceAccountToken: false
+      # this is also where you can reference PersistentVolumeClaim in 'volumes' property
+      containers:
+      - name: db-label # reference to context
+        image: docker.io/library/mongo:4.4 # the 'image' property corresponds to an actual image [!]
+        resources:
+          limits:
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+          requests:
+            cpu: 0.5
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+        ports:
+        - containerPort: 27017 # this port is actually exposed by this image by default [!]
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: black-secret
+              key: black-user
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: black-secret
+              key: black-pass
+
+# triple dash separates 'kubernetes' yaml definitions
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: black-db-service # call this whatever makes sense to you
+  namespace: black-space
+spec:
+  selector:
+    app: db-label # reference to context
+  ports:
+  - protocol: TCP
+    port: 27017 # the port exposed to the outer environment
+    targetPort: 27017 # the actual port exposed by the pod

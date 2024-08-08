@@ -1,0 +1,11 @@
+FROM alpine
+RUN apk update
+RUN apk add vim
+RUN apk add bash
+
+COPY ./entrypoint.sh /home
+COPY ./app /home/app
+
+EXPOSE 1337
+
+CMD bash /home/entrypoint.sh

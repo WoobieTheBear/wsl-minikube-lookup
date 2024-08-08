@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: black-configmap
+  namespace: black-space # this namespace is chosen arbitrarily but it is tightly coupled with all definitions
+data:
+  black-db-url: black-db-service

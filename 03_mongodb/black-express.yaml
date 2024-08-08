@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: black-express # call this whatever makes sense to you
+  namespace: black-space
+  labels:
+    app: ui-label
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui-label
+  template:
+    metadata:
+      labels:
+        app: ui-label
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: ui-label
+        image: docker.io/library/mongo-express:1.0.2
+        resources:
+          limits:
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+          requests:
+            cpu: 0.5
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: black-secret
+              key: black-user
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: black-secret
+              key: black-pass
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: black-configmap
+              key: black-db-url
+
+# triple dash separates 'kubernetes' yaml definitions
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: black-express-service
+  namespace: black-space
+spec:
+  selector:
+    app: ui-label
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8081
+    targetPort: 8081 # this is where the container is listening
+    nodePort: 30000 # this port has to be inside range [30000-32767]
