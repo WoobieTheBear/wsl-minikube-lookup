@@ -1113,5 +1113,6 @@ But be careful, this is a last resort. You can introduce memory leaks and all so
 
 
 
-
+<!--
 <script> const getISODateTZString = () => { const pad = (num, len = 2) => { const numString = `${num}`.split('').reverse().join(''); return [...Array(len).keys()].map(i => numString.charAt(i) ? numString.charAt(i) : '0').reverse().join(''); }; const getTZOffset = () => { const tzOffsetMin = new Date().getTimezoneOffset(); const delimiter = (tzOffsetMin < 0) ? '+' : (tzOffsetMin > 0) ? '-' : 'Z'; const tzAbs = Math.abs(tzOffsetMin); const hrOffset = pad(parseInt(tzAbs / 60)); const minOffset = pad(tzAbs % 60); return `${delimiter}${hrOffset}:${minOffset}`; }; const tzOffset = getTZOffset(); const dt = new Date(); const dateString = `${ dt.getFullYear()}-${ pad(dt.getMonth() + 1)}-${ pad(dt.getDate())}T${ pad(dt.getHours())}:${ pad(dt.getMinutes())}:${ pad(dt.getSeconds())}.${ pad(dt.getMilliseconds(), 3)}`; return `${dateString + tzOffset}`; }; timestamp.innerText = getISODateTZString(); </script>
+-->
