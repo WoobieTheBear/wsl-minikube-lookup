@@ -5,7 +5,7 @@
 
 # Kubernetes WSL Ubuntu 24.04
 
-<code id="timestamp"></code>
+<code id="timestamp">2024-08-22T15:41:35.972+02:00</code>
 
 These instructions will enable you to run `podman`, `kubectl` and `minikube` on Windows 11 using WSL2 with an `Ubuntu 24.04` distribution. Please notice that if you ever mess up the installation or you just somehow encounter errors or strange behavior you can stomp the entire distribution from `powershell` using the command `$> wsl --unregister ubuntu` (this also works for every other distribution name if necessary).
 
