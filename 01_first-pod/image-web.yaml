@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-web-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-web
+  template:
+    metadata:
+      labels:
+        app: image-web
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: image-web
+        image: localhost/the-image:1.0.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+          requests:
+            cpu: 0.5
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+        ports:
+        - containerPort: 1337
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-web-service
+spec:
+  selector:
+    app: image-web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 1337
+  type: ClusterIP
