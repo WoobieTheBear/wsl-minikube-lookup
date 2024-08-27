@@ -13,6 +13,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: echo-app
+            name: echo-app-service
             port:
               number: 80

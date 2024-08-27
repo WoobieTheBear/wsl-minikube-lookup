@@ -5,7 +5,7 @@
 
 # Kubernetes WSL Kind Podman desktop
 
-<code id="timestamp">2024-08-22T15:41:35.972+02:00</code>
+<code id="timestamp">2024-08-27T13:44:40.620+02:00</code>
 
 These instructions will enable you to run `podman`, `kubectl` and `kind` on Windows 11 using [Podman Desktop](https://podman-desktop.io/downloads/windows).
 
@@ -32,6 +32,9 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
       extraPortMappings:
       - containerPort: 80
         hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
         protocol: TCP
     ```
 5.  Set up the kind cluster in the console
@@ -79,13 +82,60 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
     kubens echo-space
     # [output] > ✔ Active namespace is "echo-space"
     ```
-10. Create new deployment
-    ```bash
-    kubectl create deployment echo-app --image=k8s.gcr.io/echoserver:1.4
+10. Create a `echo-app.yml` deployment file with following content
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: echo-app-deployment
+      namespace: echo-space
+      labels:
+        app: echo-app
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: echo-app
+      template:
+        metadata:
+          labels:
+            app: echo-app
+        spec:
+          automountServiceAccountToken: false
+          containers:
+          - name: echo-app
+            image: k8s.gcr.io/echoserver:1.4
+            resources:
+              limits:
+                memory: 100Mi
+                ephemeral-storage: "2Gi"
+              requests:
+                cpu: 0.5
+                memory: 100Mi
+                ephemeral-storage: "2Gi"
+            ports:
+            - containerPort: 8080
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: echo-app-service
+      namespace: echo-space
+    spec:
+      selector:
+        app: echo-app
+      ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 8080
+      type: ClusterIP
     ```
-11. Create a load balancer and expose the service
+
+<p class="pagebreak"></p>
+
+11. Create new deployment and service the same way as with minikube
     ```bash
-    kubectl expose deployment echo-app --type=LoadBalancer --port=80 --target-port=8080
+    kubectl apply -f .\echo-app.yml
     ```
 12. Confirm service and service and pod are running
     ```bash
@@ -121,9 +171,6 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
     kubectl wait --namespace=ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
     # [output] > pod/ingress-nginx-controller-8fb8cdb7c-jqgv7 condition met
     ```
-
-<p class="pagebreak"></p>
-
 14. Create file `ingress.yml` for ingress controller
     ```yml
     apiVersion: networking.k8s.io/v1
@@ -141,10 +188,13 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
             pathType: Prefix
             backend:
               service:
-                name: echo-app
+                name: echo-app-service
                 port:
                   number: 80
     ```
+
+<p class="pagebreak"></p>
+
 15. Apply the yml file for the ingress controller
     ```bash
     kubectl apply -f .\ingress.yml
@@ -164,16 +214,13 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
     #   Host        Path  Backends
     #   ----        ----  --------
     #   *
-    #               /   echo-app:80 (10.244.0.5:8080)
+    #               /   echo-app-service:80 (10.244.0.5:8080)
     # Annotations:  nginx.ingress.kubernetes.io/rewrite-target: /
     # Events:
     #   Type    Reason  Age                    From                      Message
     #   ----    ------  ----                   ----                      -------
     #   Normal  Sync    2m56s (x2 over 3m41s)  nginx-ingress-controller  Scheduled for sync
     ```
-
-<p class="pagebreak"></p>
-
 17. Send curl request to localhost to check if the service is running
     ```bash
     curl localhost
@@ -211,21 +258,25 @@ These instructions will enable you to run `podman`, `kubectl` and `kind` on Wind
     # ParsedHtml        : mshtml.HTMLDocumentClass
     # RawContentLength  : 541
     ```
+
+<p class="pagebreak"></p>
+
 18. Reset everything to working conditions (podman, kubectl etc. will keep being installed)
     ```bash
-    kubectl delete service echo-app
-    # [output] > service "echo-app" deleted
-    kubectl delete deployment echo-app
-    # [output] > deployment.apps "echo-app" deleted
+    kubectl delete -f .\ingress.yml
+    # [output] > ingress.networking.k8s.io "echo-ingress" deleted
+    kubectl delete -f .\echo-app.yml
+    # [output] 
+    # deployment.apps "echo-app-deployment" deleted
+    # service "echo-app-service" deleted
     kubens default
     # [output] > ✔ Active namespace is "default"
-    kubectl delete namespace echo-space
+    kubectl delete -f .\namespace.yml
     # [output] > namespace "echo-space" deleted
     kubectl delete --filename=https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
     # [output] > delete statements for all the services in the ingress file
     ```
 
-<p class="pagebreak"></p>
 
 ## Installing Krew Packet Manager and Stern
 

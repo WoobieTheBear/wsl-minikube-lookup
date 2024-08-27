@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-app-deployment
+  namespace: echo-space
+  labels:
+    app: echo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-app
+  template:
+    metadata:
+      labels:
+        app: echo-app
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: echo-app
+        image: k8s.gcr.io/echoserver:1.4
+        resources:
+          limits:
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+          requests:
+            cpu: 0.5
+            memory: 100Mi
+            ephemeral-storage: "2Gi"
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-app-service
+  namespace: echo-space
+spec:
+  selector:
+    app: echo-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
