@@ -1,0 +1,17 @@
+<configuration>
+    <logger name="o.a.activemq.artemis.core.client" level="ERROR"/>
+    <logger name="org.apache.activemq.audit.base" level="ERROR"/>
+    <logger name="org.apache.activemq.artemis.core.server" level="ERROR"/>
+    <logger name="org.apache.activemq.audit.message" level="ERROR"/>
+    <logger name="org.apache.activemq.audit.resource" level="ERROR"/>
+    
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %logger{36} -- %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

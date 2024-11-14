@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-amq-producer-to-broker
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: amq-producer-service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: amq-broker-service
+    ports:
+    - protocol: TCP
+      port: 61616

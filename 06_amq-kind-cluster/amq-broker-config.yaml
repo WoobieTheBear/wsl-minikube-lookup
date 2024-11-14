@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: broker-config
+data:
+    broker1.xml: |
+        <configuration xmlns="urn:activemq:core">
+            <cluster-user>admin</cluster-user>
+            <cluster-password>admin</cluster-password>
+
+            <!-- Enable Replicated Journal -->
+            <replication-master>true</replication-master>
+
+            <!-- Configure the cluster connection -->
+            <cluster-connections>
+                <cluster-connection name="amq-cluster">
+                    <connector-ref>broker1-connector</connector-ref>
+                    <retry-interval>1000</retry-interval>
+                    <message-load-balancing>ON_DEMAND</message-load-balancing>
+                    <max-hops>1</max-hops>
+                    <static-connectors>
+                        <connector-ref>broker2-connector</connector-ref>
+                    </static-connectors>
+                </cluster-connection>
+            </cluster-connections>
+
+            <connectors>
+                <connector name="broker1-connector">tcp://amq-broker-0:61616</connector>
+                <connector name="broker2-connector">tcp://amq-broker-1:61616</connector>
+            </connectors>
+
+            <address-settings>
+                <address-setting match="#">
+                    <redistribution-delay>1000</redistribution-delay>
+                </address-setting>
+            </address-settings>
+            <addresses>
+                <address name="queueOne">
+                    <anycast>
+                        <queue name="queueOne"/>
+                    </anycast>
+                </address>
+            </addresses>
+        </configuration>
+
+    broker2.xml: |
+        <configuration xmlns="urn:activemq:core">
+            <cluster-user>admin</cluster-user>
+            <cluster-password>admin</cluster-password>
+
+            <!-- Enable Replicated Journal -->
+            <replication-master>false</replication-master>
+
+            <!-- Configure the cluster connection -->
+            <cluster-connections>
+                <cluster-connection name="amq-cluster">
+                    <connector-ref>broker2-connector</connector-ref>
+                    <retry-interval>1000</retry-interval>
+                    <message-load-balancing>ON_DEMAND</message-load-balancing>
+                    <max-hops>1</max-hops>
+                    <static-connectors>
+                        <connector-ref>broker1-connector</connector-ref>
+                    </static-connectors>
+                </cluster-connection>
+            </cluster-connections>
+
+            <connectors>
+                <connector name="broker1-connector">tcp://amq-broker-0:61616</connector>
+                <connector name="broker2-connector">tcp://amq-broker-1:61616</connector>
+            </connectors>
+
+            <address-settings>
+                <address-setting match="#">
+                    <redistribution-delay>1000</redistribution-delay>
+                </address-setting>
+            </address-settings>
+            <addresses>
+                <address name="queueOne">
+                    <anycast>
+                        <queue name="queueOne"/>
+                    </anycast>
+                </address>
+            </addresses>
+        </configuration>

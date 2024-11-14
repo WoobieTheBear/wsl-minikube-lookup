@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: amq-broker
+spec:
+  serviceName: amq-broker-service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: amq-broker
+  template:
+    metadata:
+      labels:
+        app: amq-broker
+    spec:
+      containers:
+      - name: amq-broker
+        image: apache/activemq-artemis:latest-alpine
+        ports:
+        - containerPort: 61616
+          name: tcp
+        volumeMounts:
+        - name: broker-config
+          mountPath: /var/lib/artemis/etc/
+        env:
+        - name: ARTEMIS_USER
+          value: admin
+        - name: ARTEMIS_PASSWORD
+          value: admin
+      volumes:
+      - name: broker-config
+        configMap:
+          name: broker-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amq-broker-service
+spec:
+  selector:
+    app: amq-broker
+  ports:
+  - protocol: TCP
+    port: 61616
+    targetPort: 61616
+  type: ClusterIP

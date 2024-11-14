@@ -1,0 +1,26 @@
+# Start with a base image that has Java 17 installed.
+FROM eclipse-temurin:17-jdk-jammy
+
+# Set a default directory inside the container to work from.
+WORKDIR /plainconsumer
+
+# Copy the special Maven files that help us download dependencies.
+COPY /plainconsumer/.mvn/ /plainconsumer/.mvn
+
+# Copy only essential Maven files required to download dependencies.
+COPY /plainconsumer/mvnw /plainconsumer/pom.xml ./
+
+# Copy our actual project files (code, resources, etc.) into the container.
+COPY /plainconsumer/src /plainconsumer/./src
+
+# Set execute permission on mvnw
+RUN chmod +x /plainconsumer/mvnw
+
+# Download all the required project dependencies.
+RUN /plainconsumer/mvnw dependency:resolve
+
+# Package the application as a JAR file during build
+RUN /plainconsumer/mvnw package -DskipTests
+
+# Set the entrypoint to run the JAR file
+CMD ["java", "-jar", "target/plainconsumer-0.0.1-SNAPSHOT.jar"]

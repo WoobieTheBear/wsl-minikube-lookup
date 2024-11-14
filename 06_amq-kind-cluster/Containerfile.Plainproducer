@@ -1,0 +1,26 @@
+# Start with a base image that has Java 17 installed.
+FROM eclipse-temurin:17-jdk-jammy
+
+# Set a default directory inside the container to work from.
+WORKDIR /plainproducer
+
+# Copy the special Maven files that help us download dependencies.
+COPY /plainproducer/.mvn/ /plainproducer/.mvn
+
+# Copy only essential Maven files required to download dependencies.
+COPY /plainproducer/mvnw /plainproducer/pom.xml ./
+
+# Copy our actual project files (code, resources, etc.) into the container.
+COPY /plainproducer/src /plainproducer/./src
+
+# Set execute permission on mvnw
+RUN chmod +x /plainproducer/mvnw
+
+# Download all the required project dependencies.
+RUN /plainproducer/mvnw dependency:resolve
+
+# Package the application as a JAR file during build
+RUN /plainproducer/mvnw package -DskipTests
+
+# Set the entrypoint to run the JAR file
+CMD ["java", "-jar", "target/plainproducer-0.0.1-SNAPSHOT.jar"]
